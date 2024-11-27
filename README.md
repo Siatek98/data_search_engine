@@ -1,6 +1,6 @@
 # Data Search App
 
-An application for searching, analyzing, and visualizing financial and economic data from multiple sources such as FRED, Eurostat, World Bank, and Yahoo Finance. The app enables creating reports, generating dynamic charts, and exporting results to Excel and PDF files. You can also generate fast python code to get and mangade data in your python.
+An application for searching, analyzing, and visualizing financial and economic data from multiple sources such as FRED, Eurostat, World Bank, and Yahoo Finance. The app enables creating reports, generating dynamic charts, and exporting results to Excel and PDF files.
 
 ## Features
 
