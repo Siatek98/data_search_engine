@@ -52,13 +52,16 @@ When the application launches, it will prompt you to enter these API keys. Once 
 ## Screenshots
 
 - **Main Window:**
-  ![Main Window](https://via.placeholder.com/800x400?text=Main+Window)
+  ![Main Window](https://github.com/Siatek98/data_search_engine/blob/main/screenshots/Screenshot_01.png)
 
-- **Excel Report Example:**
-  ![Excel Report](https://via.placeholder.com/800x400?text=Excel+Report)
+- **Charts:**
+  ![Stock Chart](https://github.com/Siatek98/data_search_engine/blob/main/screenshots/Screenshot_02.png)
 
-- **Data Visualization:**
-  ![Data Visualization](https://via.placeholder.com/800x400?text=Data+Visualization)
+- **Economic Data Chart:**
+  ![WB Chart](https://github.com/Siatek98/data_search_engine/blob/main/screenshots/Screenshot_03.png)
+  
+- **Fundamentals data:**
+  ![WB Chart](https://github.com/Siatek98/data_search_engine/blob/main/screenshots/Screenshot_04.png)
 
 ## Future Development
 
@@ -74,7 +77,7 @@ Planned features include:
 If you encounter any issues, have questions, or want to suggest improvements, please:
 
 - Create an issue in the GitHub repository.
-- Contact me via email at `your-email@example.com`.
+- Contact me via email at `tomeksiat@gmail.com`.
 
 ## License
 
