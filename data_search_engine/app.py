@@ -738,9 +738,10 @@ class DataSearchApp:
         if not fred_items.empty:
             code_lines.append("# Fetching data from FRED")
             for _, row in fred_items.iterrows():
-                code_lines.append(f"data_dict['{row['title']}'] = fred.get_series('{row['id']}')")
                 code_lines.append("# Initialize FRED API",)
                 code_lines.append(f"fred = Fred(api_key='{fred_api}')  # Replace with your FRED API key",)
+                code_lines.append(f"data_dict['{row['title']}'] = fred.get_series('{row['id']}')")
+
 
 
         if not stock_items.empty:
