@@ -19,10 +19,11 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import eurostat
-from tkinter import  Toplevel
+from tkinter import Toplevel
 from tkinter import ttk
 import re
-
+import matplotlib.dates as mdates
+from tkinter import CENTER
 
 
 
@@ -31,64 +32,67 @@ fmp_api_key = None
 
 SETTINGS_FILE = "app_settings.json"
 
-def set_modern_style(root):
-    style = ttk.Style(root)
-
-    # Ustawienia ogólne
-    root.configure(bg="#1e1e2f")  # Tło aplikacji
-    style.theme_use('default')
-
-    # Styl przycisków
-    style.configure("TButton", background="#2d2d44", foreground="#ffffff",
-                    font=("Inter", 11, "bold"), padding=10, borderwidth=0, relief="flat")
-    style.map("TButton", background=[("active", "#6366f1")], foreground=[("active", "#ffffff")])
-
-    # Pola tekstowe i Combobox
-    style.configure("TEntry", fieldbackground="#2d2d44", foreground="#ffffff", borderwidth=0, insertcolor="#ffffff")
-    style.configure("SearchMode.TCombobox",
-                    fieldbackground="#2d2d44",  # Tło pola wpisywania
-                    background="#3c3c58",      # Tło rozwijanego menu
-                    foreground="#ffffff",      # Kolor tekstu
-                    borderwidth=1,
-                    relief="flat")
-    style.map("SearchMode.TCombobox",
-              fieldbackground=[("readonly", "#2d2d44")],
-              foreground=[("readonly", "#ffffff")],
-              selectbackground=[("readonly", "#45455a")],
-              selectforeground=[("readonly", "#ffffff")])
-
-    # Globalne ustawienia dla Listbox używanego przez Combobox
-    root.option_add("*TCombobox*Listbox*Background", "#3c3c58")  # Tło rozwijanego menu
-    root.option_add("*TCombobox*Listbox*Foreground", "#ffffff")  # Kolor tekstu
-    root.option_add("*TCombobox*Listbox*SelectBackground", "#4c4cff")  # Tło aktywnego wyboru
-    root.option_add("*TCombobox*Listbox*SelectForeground", "#ffffff")  # Tekst aktywnego wyboru
-    root.option_add("*TCombobox*Listbox*Font", "Inter 10 bold") 
-    style.configure("TScrollbar", background="#2d2d44", troughcolor="#1e1e2f", borderwidth=0)
-    style.map("TScrollbar", background=[("active", "#6366f1")])
-
-    # Tabele (Treeview)
-    style.configure("Treeview", background="#2d2d44", foreground="#ffffff",
-                    fieldbackground="#2d2d44", rowheight=25, font=("Inter", 10))
-    style.configure("Treeview.Heading", background="#2d2d44", foreground="#ffffff",
-                    font=("Inter", 12, "bold"))
-    style.map("Treeview.Heading", background=[("active", "#4c4cff")])
-
-    style.configure("TCombobox",
-                fieldbackground="#2d2d44",  # Tło pola wyboru
-                background="#1e1e2f",      # Tło całego widgetu
-                foreground="#ffffff",      # Kolor tekstu
-                arrowcolor="#ffffff",      # Kolor strzałki
-                borderwidth=0,             # Brak ramki
-                lightcolor="#6366f1",      # Kolor interakcji
-                darkcolor="#1e1e2f")       # Kolor ramki zewnętrznej
-
-    style.map("TCombobox",
-            fieldbackground=[("readonly", "#2d2d44"), ("focus", "#3c3c50")],  # Zmiana tła w trybie readonly i focus
-            foreground=[("disabled", "#888888"), ("readonly", "#ffffff")],   # Kolor tekstu dla stanu readonly
-            lightcolor=[("focus", "#6366f1")],                                # Kolor interakcji
-            darkcolor=[("focus", "#6366f1")])       
 
 class DataSearchApp:
+    @staticmethod
+    def set_modern_style(root):
+        """Metoda statyczna ustawiająca nowoczesny styl aplikacji."""
+        style = ttk.Style(root)
+
+        # Ustawienia ogólne
+        root.configure(bg="#1e1e2f")  # Tło aplikacji
+        style.theme_use('default')
+
+        # Styl przycisków
+        style.configure("TButton", background="#2d2d44", foreground="#ffffff",
+                        font=("Inter", 11, "bold"), padding=10, borderwidth=0, relief="flat")
+        style.map("TButton", background=[("active", "#6366f1")], foreground=[("active", "#ffffff")])
+
+        # Pola tekstowe i Combobox
+        style.configure("TEntry", fieldbackground="#2d2d44", foreground="#ffffff", borderwidth=0, insertcolor="#ffffff")
+        style.configure("SearchMode.TCombobox",
+                        fieldbackground="#2d2d44",  # Tło pola wpisywania
+                        background="#3c3c58",      # Tło rozwijanego menu
+                        foreground="#ffffff",      # Kolor tekstu
+                        borderwidth=1,
+                        relief="flat")
+        style.map("SearchMode.TCombobox",
+                  fieldbackground=[("readonly", "#2d2d44")],
+                  foreground=[("readonly", "#ffffff")],
+                  selectbackground=[("readonly", "#45455a")],
+                  selectforeground=[("readonly", "#ffffff")])
+
+        # Globalne ustawienia dla Listbox używanego przez Combobox
+        root.option_add("*TCombobox*Listbox*Background", "#3c3c58")  # Tło rozwijanego menu
+        root.option_add("*TCombobox*Listbox*Foreground", "#ffffff")  # Kolor tekstu
+        root.option_add("*TCombobox*Listbox*SelectBackground", "#4c4cff")  # Tło aktywnego wyboru
+        root.option_add("*TCombobox*Listbox*SelectForeground", "#ffffff")  # Tekst aktywnego wyboru
+        root.option_add("*TCombobox*Listbox*Font", "Inter 10 bold") 
+        style.configure("TScrollbar", background="#2d2d44", troughcolor="#1e1e2f", borderwidth=0)
+        style.map("TScrollbar", background=[("active", "#6366f1")])
+
+        # Tabele (Treeview)
+        style.configure("Treeview", background="#2d2d44", foreground="#ffffff",
+                        fieldbackground="#2d2d44", rowheight=25, font=("Inter", 10))
+        style.configure("Treeview.Heading", background="#2d2d44", foreground="#ffffff",
+                        font=("Inter", 12, "bold"))
+        style.map("Treeview.Heading", background=[("active", "#4c4cff")])
+
+        style.configure("TCombobox",
+                    fieldbackground="#2d2d44",  # Tło pola wyboru
+                    background="#1e1e2f",      # Tło całego widgetu
+                    foreground="#ffffff",      # Kolor tekstu
+                    arrowcolor="#ffffff",      # Kolor strzałki
+                    borderwidth=0,             # Brak ramki
+                    lightcolor="#6366f1",      # Kolor interakcji
+                    darkcolor="#1e1e2f")       # Kolor ramki zewnętrznej
+
+        style.map("TCombobox",
+                fieldbackground=[("readonly", "#2d2d44"), ("focus", "#3c3c50")],  # Zmiana tła w trybie readonly i focus
+                foreground=[("disabled", "#888888"), ("readonly", "#ffffff")],   # Kolor tekstu dla stanu readonly
+                lightcolor=[("focus", "#6366f1")],                                # Kolor interakcji
+                darkcolor=[("focus", "#6366f1")])     
+
     def __init__(self, root):
         self.root = root
         self.root.title("Data Search")
@@ -96,7 +100,7 @@ class DataSearchApp:
 
 
         # Zastosowanie nowoczesnego stylu
-        set_modern_style(self.root)
+        DataSearchApp.set_modern_style(self.root)
 
         # Initialize sort state for each column
         self.sort_states = {}
@@ -125,6 +129,7 @@ class DataSearchApp:
         self.fred = Fred(api_key=f'{fred_api}')
         self.FMP_API_KEY = fmp_api_key
         self.FMP_BASE_URL = 'https://financialmodelingprep.com/api/v3'
+ 
 
     def create_widgets(self):
         # Pasek wyszukiwania i nawigacja
@@ -1959,9 +1964,8 @@ class DataSearchApp:
         self.save_settings()
         self.root.destroy()
 # Run the application
-if __name__ == "__main__":
+def run_app():
     root = tk.Tk()
-    
     app = DataSearchApp(root)
-    root.protocol("WM_DELETE_WINDOW", app.on_close)
+    root.protocol("WM_DELETE_WINDOW", app.root.destroy)
     root.mainloop()
