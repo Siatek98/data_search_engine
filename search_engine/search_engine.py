@@ -23,7 +23,6 @@ from tkinter import Toplevel
 from tkinter import ttk
 import re
 import matplotlib.dates as mdates
-from tkinter import CENTER
 
 
 
@@ -130,7 +129,6 @@ class DataSearchApp:
         self.FMP_API_KEY = fmp_api_key
         self.FMP_BASE_URL = 'https://financialmodelingprep.com/api/v3'
  
-
     def create_widgets(self):
         # Pasek wyszukiwania i nawigacja
         search_frame = tk.Frame(self.root, bg="#1e1e2f")  # Tło paska wyszukiwania
@@ -1769,7 +1767,10 @@ class DataSearchApp:
 
         # Obsługa scrolla myszy
         def _on_mousewheel(event):
-            canvas.yview_scroll(-1 * (event.delta // 120), "units")
+            if canvas.winfo_exists():  # Sprawdzamy, czy canvas istnieje
+                canvas.yview_scroll(-1 * (event.delta // 120), "units")
+            else:
+                None
 
         dialog_window.bind_all("<MouseWheel>", _on_mousewheel)
 
@@ -1961,8 +1962,19 @@ class DataSearchApp:
         error_window.geometry(f"+{x}+{y}")
 
     def on_close(self):
+        # 1. Zapisz ustawienia (jeśli to potrzebne)
         self.save_settings()
+        
+        # 2. Usuń zdarzenia dla widżetów (np. canvas)
+        try:
+            if hasattr(self, 'canvas') and self.canvas.winfo_exists():
+                self.canvas.unbind_all("<MouseWheel>")
+        except Exception as e:
+            print(f"Error during unbinding: {e}")
+        
+        # 3. Zniszcz główne okno
         self.root.destroy()
+
 # Run the application
 def run_app():
     root = tk.Tk()
