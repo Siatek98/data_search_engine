@@ -31,8 +31,8 @@ An application for searching, analyzing, and visualizing financial and economic 
 
 To install and run the application, clone the repository using:
 ```bash
-git clone https://github.com/your-username/data-search-app.git
-cd data-search-app
+git clone https://github.com/Siatek98/data_search_engine.git
+cd data_search_engine
 ```
 Install the required dependencies:
 ```bash
