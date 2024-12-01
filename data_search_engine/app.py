@@ -546,65 +546,62 @@ class DataSearchApp:
             return
 
         # Determine the sorting order
-        if self.sort_states.get(column, 'none') == 'descending':
-            self.sort_states[column] = 'ascending'
-            ascending = True
-        else:
-            self.sort_states[column] = 'descending'
-            ascending = False
+        ascending = self.sort_states.get(column, 'descending') == 'descending'
+        self.sort_states[column] = 'ascending' if ascending else 'descending'
 
         try:
+            # Map the TreeView column name to the DataFrame column
             search_mode = self.search_mode_var.get()
-
-            if search_mode == 'FRED':
-                column_mapping = {
+            column_mapping = {
+                'FRED': {
                     'ID': 'id',
                     'Title': 'title',
                     'Observation Start': 'observation_start',
                     'Observation End': 'observation_end',
                     'Frequency': 'frequency_short',
                     'Units': 'units',
-                }
-            elif search_mode == 'Stocks':
-                column_mapping = {
+                },
+                'Stocks': {
                     'Symbol': 'symbol',
                     'Name': 'name',
                     'Exchange': 'stockExchange',
-                }
-            elif search_mode == 'Eurostat':
-                column_mapping = {
+                },
+                'Eurostat': {
                     'ID': 'id',
                     'Title': 'title',
                     'Last Update': 'last update',
                     'Data Start': 'data start',
                     'Data End': 'data end',
-                }
-            elif search_mode == 'World Bank':
-                column_mapping = {
+                },
+                'World Bank': {
                     'ID': 'id',
                     'Name': 'name',
                     'Source Note': 'sourceNote',
                     'Source Organization': 'sourceOrganization',
-                }
-            else:
-                column_mapping = {col: col for col in self.search_results.columns}
+                },
+            }.get(search_mode, {})
 
             df_column = column_mapping.get(column, column)
             if df_column not in self.search_results.columns:
                 raise KeyError(f"Column '{column}' not found in the data.")
 
-            # Sortuj dane
+            # Sort the DataFrame
             self.search_results = self.search_results.sort_values(by=df_column, ascending=ascending)
 
-            # Aktualizuj TreeView
+            # Clear TreeView rows while keeping column structure intact
             self.tree.delete(*self.tree.get_children())
+
+            # Reinsert sorted data into TreeView
+            columns_order = self.tree['columns']  # Ensure the column order is preserved
             for _, row in self.search_results.iterrows():
-                self.tree.insert('', 'end', values=row.tolist())
+                row_values = [row[col] for col in columns_order]  # Match TreeView column order
+                self.tree.insert('', 'end', values=row_values)
 
         except KeyError as e:
             messagebox.showerror("Error", str(e))
         except Exception as e:
             messagebox.showerror("Error", f"Failed to sort data: {e}")
+
 
     def update_treeview_columns(self, *args):
         search_mode = self.search_mode_var.get()
