@@ -869,9 +869,106 @@ class DataSearchApp:
         if search_mode == 'Stocks':
             context_menu.add_command(label="Fundaments", command=self.show_fundamentals)
             context_menu.add_command(label="Download Fundamentals", command=self.download_fundamentals)
+            context_menu.add_command(label="Quarterly Fundamentals", command=self.show_quarterly_fundamentals)
+            context_menu.add_command(label="Download Quarterly Fundamentals", command=self.download_quarterly_fundamentals)
 
         context_menu.tk_popup(event.x_root, event.y_root)
-   
+
+    def show_quarterly_fundamentals(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            return
+
+        item_data = self.tree.item(selected_item)
+        item_values = item_data['values']
+        symbol = item_values[0]
+
+        try:
+            ticker = yf.Ticker(symbol)
+            # Dane kwartalne
+            info = ticker.info
+            income_statement = ticker.quarterly_financials
+            balance_sheet = ticker.quarterly_balance_sheet
+            cash_flow = ticker.quarterly_cashflow
+
+            # Wyświetlenie w nowym oknie
+            self.display_fundamental_data(symbol, info, income_statement, balance_sheet, cash_flow)
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}") 
+
+    def download_quarterly_fundamentals(self):
+        selected_item = self.tree.selection()
+        if not selected_item:
+            return
+
+        item_data = self.tree.item(selected_item)
+        item_values = item_data['values']
+        symbol = item_values[0]
+
+        try:
+            ticker = yf.Ticker(symbol)
+
+            # Dane kwartalne
+            info = ticker.info
+            income_statement = ticker.quarterly_financials
+            balance_sheet = ticker.quarterly_balance_sheet
+            cash_flow = ticker.quarterly_cashflow
+
+            parsed_data = {}
+            # Company Info
+            parsed_company_info = []
+            for k, v in info.items():
+                if isinstance(v, (dict, list)):
+                    v = str(v)
+                parsed_company_info.append([k, v])
+
+            parsed_data['Company Info'] = {
+                'headers': ['Item', 'Value'],
+                'data': parsed_company_info
+            }
+
+            # Income Statement Quarterly
+            if not income_statement.empty:
+                income_statement.columns = income_statement.columns.strftime('%Y-%m-%d')
+                income_statement.index.name = 'Item'
+                income_statement.reset_index(inplace=True)
+                parsed_data['Quarterly Income Statement'] = {
+                    'headers': income_statement.columns.tolist(),
+                    'data': income_statement.values.tolist()
+                }
+
+            # Balance Sheet Quarterly
+            if not balance_sheet.empty:
+                balance_sheet.columns = balance_sheet.columns.strftime('%Y-%m-%d')
+                balance_sheet.index.name = 'Item'
+                balance_sheet.reset_index(inplace=True)
+                parsed_data['Quarterly Balance Sheet'] = {
+                    'headers': balance_sheet.columns.tolist(),
+                    'data': balance_sheet.values.tolist()
+                }
+
+            # Cash Flow Quarterly
+            if not cash_flow.empty:
+                cash_flow.columns = cash_flow.columns.strftime('%Y-%m-%d')
+                cash_flow.index.name = 'Item'
+                cash_flow.reset_index(inplace=True)
+                parsed_data['Quarterly Cash Flow Statement'] = {
+                    'headers': cash_flow.columns.tolist(),
+                    'data': cash_flow.values.tolist()
+                }
+
+            company_name = info.get('longName', symbol)
+            company_name = re.sub(r'[\\/*?:"<>|]', '', company_name)
+
+            # Zapis do Excel i PDF
+            self.save_to_excel(parsed_data, f"{company_name}_quarterly.xlsx")
+            self.save_to_pdf(parsed_data, f"{company_name}_quarterly.pdf", company_name)
+
+            messagebox.showinfo("Success", f"Quarterly fundamentals saved as {company_name}_quarterly.xlsx and {company_name}_quarterly.pdf")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred while downloading quarterly fundamentals: {e}")
+
     def download_series(self):
         selected_item = self.tree.selection()
         if not selected_item:
@@ -1596,7 +1693,7 @@ class DataSearchApp:
             'Wrapped',
             parent=styles['Normal'],
             alignment=0,
-            fontName='Interica',
+            fontName='Helvetica',
             fontSize=8,
             leading=10,
             wordWrap='CJK',
@@ -1607,7 +1704,7 @@ class DataSearchApp:
             'Header',
             parent=styles['Normal'],
             alignment=1,
-            fontName='Interica-Bold',
+            fontName='Helvetica-Bold',
             fontSize=10,
             textColor=colors.white
         )
@@ -1643,7 +1740,7 @@ class DataSearchApp:
                         ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                         ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Interica-Bold'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                         ('FONTSIZE', (0, 0), (-1, 0), 10),
                         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
                         ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),  # Profesjonalny kolor tła
