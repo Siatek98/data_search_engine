@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name="data-search-engine",
-    version="1.0.7",  # Zwiększ numer wersji
+    version="1.1.0", 
     description="A Python-based data search and visualization engine.",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="Siatek98",
     url="https://github.com/Siatek98/data_search_engine",
-    packages=find_packages(),  # Znajduje wszystkie pakiety, w tym data_search_engine
+    packages=find_packages(), 
     include_package_data=True,
     install_requires=[
         "pandas",
