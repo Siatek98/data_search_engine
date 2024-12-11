@@ -51,6 +51,10 @@ pip install data-search-engine
 from data_search_engine import run_app
 run_app()
 ```
+Your credentials and favorites will be stored in app_settings.json in folder with where your packagge is installed. To find the path our you can use:
+```bash
+pip show data_search_engine
+```
 You will need API keys for the following services:
 
 - **FRED API Key:** Obtain it [here](https://fred.stlouisfed.org/docs/api/fred/).
