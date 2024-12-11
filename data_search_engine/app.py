@@ -120,6 +120,8 @@ class DataSearchApp:
 
         # Create the UI
         self.create_widgets()
+        self.search_mode_var.set("Stock Screener")  # Ustawienie domyślnego trybu na Stock Screener
+        self.create_stock_screener_filters()
 
         # Load previous settings after widgets are initialized
         self.load_settings()
@@ -166,7 +168,7 @@ class DataSearchApp:
         search_mode_label.pack(side=tk.LEFT, padx=5)
 
         search_mode_combobox = ttk.Combobox(search_frame, textvariable=self.search_mode_var,
-                                            values=['FRED', 'Stocks', 'Eurostat', 'World Bank'], state='readonly',
+                                            values=['FRED', 'Stocks','Stock Screener', 'Eurostat', 'World Bank'], state='readonly',
                                             style="SearchMode.TCombobox", width=12)
         search_mode_combobox.pack(side=tk.LEFT)
 
@@ -188,12 +190,18 @@ class DataSearchApp:
         paned_window.add(self.table_frame, weight=1)  # Główna część aplikacji
 
         self.tree = ttk.Treeview(self.table_frame, show='headings', style="Treeview")
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Pionowy pasek przewijania dla tabeli wyników
-        scrollbar = ttk.Scrollbar(self.table_frame, orient=tk.VERTICAL, command=self.tree.yview, style="TScrollbar")
-        self.tree.configure(yscroll=scrollbar.set)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Pionowy pasek przewijania
+        scrollbar_y = ttk.Scrollbar(self.table_frame, orient=tk.VERTICAL, command=self.tree.yview, style="TScrollbar")
+        scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tree.configure(yscrollcommand=scrollbar_y.set)
+
+        # Poziomy pasek przewijania
+        scrollbar_x = ttk.Scrollbar(self.table_frame, orient=tk.HORIZONTAL, command=self.tree.xview, style="TScrollbar")
+        scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+        self.tree.configure(xscrollcommand=scrollbar_x.set)
+
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
         # Inicjalizacja kolumn TreeView
         self.update_treeview_columns()
@@ -232,6 +240,173 @@ class DataSearchApp:
         self.favorites_tree.bind('<Delete>', self.remove_favorite)
         self.root.bind('<Control-c>', self.copy_selected_row)
         self.tree.bind("<Button-3>", self.show_context_menu)
+
+    def create_stock_screener_filters(self):
+        # Usuwamy poprzednią ramkę, jeśli istnieje:
+        if hasattr(self, 'screener_frame') and self.screener_frame.winfo_exists():
+            self.screener_frame.destroy()
+
+        self.screener_frame = tk.Frame(self.root, bg="#1e1e2f")
+
+        # Zmienne do przechowywania wartości filtrów
+        self.exchange_var = tk.StringVar()
+        self.sector_var = tk.StringVar()
+        self.industry_var = tk.StringVar()
+        self.country_var = tk.StringVar()
+        self.market_cap_min_var = tk.StringVar()
+        self.market_cap_max_var = tk.StringVar()
+        self.pe_min_var = tk.StringVar()
+        self.pe_max_var = tk.StringVar()
+        self.price_min_var = tk.StringVar()
+        self.price_max_var = tk.StringVar()
+        self.volume_more_var = tk.StringVar()
+        self.dividend_min_var = tk.StringVar()
+        self.dividend_max_var = tk.StringVar()
+        self.beta_min_var = tk.StringVar()
+        self.beta_max_var = tk.StringVar()
+        self.is_etf_var = tk.StringVar()
+
+        # Przykładowe listy wartości dla combobox'ów
+        exchange_values = [
+            "None",
+            "AMEX",
+            "ASX",
+            "BSE",
+            "EURONEXT",
+            "HKSE",
+            "JPX",
+            "LSE",
+            "NASDAQ",
+            "NSE",
+            "NYSE",
+            "PNK",
+            "SHH",
+            "SHZ",
+            "TSX",
+            "WSE",
+            "XETRA"
+        ]
+        sector_values = [
+            "None",
+            "Basic Materials",
+            "Communication Services",
+            "Consumer Cyclical",
+            "Consumer Defensive",
+            "Energy",
+            "Financial",
+            "Healthcare",
+            "Industrials",
+            "Real Estate",
+            "Technology",
+            "Utilities"
+        ]
+        
+        industry_values = [
+            "None",
+            "Aerospace & Defense",
+            "Aluminum",
+            "Agricultural Inputs",
+            "Asset Management",
+            "Asset Managment - Bonds",
+            "Auto - Parts",
+            "Banks - Diversified",
+            "Banks - Regional",
+            "Beverages - Wineries & Distilleries",
+            "Biotechnology",
+            "Broadcasting",
+            "Chemicals",
+            "Chemicals - Specialty",
+            "Construction Materials",
+            "Copper",
+            "Electronic Gaming & Multimedia",
+            "Financial - Capital Markets",
+            "Financial - Credit Services",
+            "Food Confectioners",
+            "Healthcare Plans",
+            "Hardware, Equipment & Parts",
+            "Industrial Materials",
+            "Internet Content & Information",
+            "Leisure",
+            "Medical - Diagnostics & Research",
+            "Other Precious Metals",
+            "Packaging & Containers",
+            "Paper, Lumber & Forest Products",
+            "Publishing",
+            "Real Estate - Development",
+            "Real Estate - Services",
+            "REIT - Residential",
+            "Renewable Utilties",
+            "Residental Construction",
+            "Restaurants",
+            "Semiconductors",
+            "Specialty Retail",
+            "Software - Application",
+            "Software - Infrastructure",
+            "Solar",
+            "Telecommunications Services",
+            "Trucking",
+            "Travel Services",
+            "Oil & Gas Midstream"
+        ]
+
+
+        def add_combobox_field(parent, label_text, var, values, grid_row, grid_col, width=25):
+            field_frame = tk.Frame(parent, bg="#1e1e2f")
+            field_frame.grid(row=grid_row, column=grid_col, padx=10, pady=5, sticky="nw")
+            lbl = tk.Label(field_frame, text=label_text, bg="#1e1e2f", fg="#ffffff")
+            lbl.grid(row=0, column=0, sticky="w")
+            combo = ttk.Combobox(field_frame, textvariable=var, values=values, state='readonly', width=width)
+            combo.grid(row=1, column=0, sticky="ew", pady=(2, 0))
+            combo.set("None")
+            field_frame.columnconfigure(0, weight=1)
+
+        def add_field(parent, label_text, var, grid_row, grid_col, width=25):
+            field_frame = tk.Frame(parent, bg="#1e1e2f")
+            field_frame.grid(row=grid_row, column=grid_col, padx=10, pady=5, sticky="nw")
+            lbl = tk.Label(field_frame, text=label_text, bg="#1e1e2f", fg="#ffffff")
+            lbl.grid(row=0, column=0, sticky="w")
+            entry = ttk.Entry(field_frame, textvariable=var, width=width)
+            entry.grid(row=1, column=0, sticky="ew", pady=(2, 0))
+            field_frame.columnconfigure(0, weight=1)
+
+        # Układ teraz pionowo w kolumnach (2 pola w jednej kolumnie)
+        # Kolumna 0: Exchange, Sector
+        add_combobox_field(self.screener_frame, "Exchange:", self.exchange_var, exchange_values, 0, 0)
+        add_combobox_field(self.screener_frame, "Sector:", self.sector_var, sector_values, 1, 0)
+
+        # Kolumna 1: Industry, Country
+        add_combobox_field(self.screener_frame, "Industry:", self.industry_var, industry_values, 0, 1)
+        add_field(self.screener_frame, "Country (e.g US or PL):", self.country_var, 1, 1)
+
+        # Kolumna 2: MarketCap Min, MarketCap Max
+        add_field(self.screener_frame, "MarketCap Min:", self.market_cap_min_var, 0, 2)
+        add_field(self.screener_frame, "MarketCap Max:", self.market_cap_max_var, 1, 2)
+
+        # Kolumna 3: P/E Min, P/E Max
+        add_field(self.screener_frame, "P/E Min:", self.pe_min_var, 0, 3)
+        add_field(self.screener_frame, "P/E Max:", self.pe_max_var, 1, 3)
+
+        # Kolumna 4: Price Min, Price Max
+        add_field(self.screener_frame, "Price Min:", self.price_min_var, 0, 4)
+        add_field(self.screener_frame, "Price Max:", self.price_max_var, 1, 4)
+
+        # Kolumna 5: Volume More Than, Is ETF
+        add_field(self.screener_frame, "Volume More Than:", self.volume_more_var, 0, 5)
+        add_field(self.screener_frame, "Is ETF (true/false):", self.is_etf_var, 1, 5)
+
+        # Kolumna 6: Dividend Min, Dividend Max
+        add_field(self.screener_frame, "Dividend Min:", self.dividend_min_var, 0, 6)
+        add_field(self.screener_frame, "Dividend Max:", self.dividend_max_var, 1, 6)
+
+        # Kolumna 7: Beta Min, Beta Max
+        add_field(self.screener_frame, "Beta Min:", self.beta_min_var, 0, 7)
+        add_field(self.screener_frame, "Beta Max:", self.beta_max_var, 1, 7)
+
+        # Zaktualizujemy układ ramki
+        self.screener_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+
+        # Podpięcie obsługi klawisza Enter do funkcji wyszukiwarki
+        self.root.bind('<Return>', self.search_data)
 
     def update_treeview_columns(self, *args):
         search_mode = self.search_mode_var.get()
@@ -274,11 +449,10 @@ class DataSearchApp:
     def search_data(self, event=None):
         search_query = self.search_var.get().strip()
 
-        if not search_query:
+        if not search_query and self.search_mode_var.get() != 'Stock Screener':
             messagebox.showwarning("Warning", "Please enter a search query.")
             return
 
-        # Save the query to history
         if self.history_index == -1 or (self.history_index >= 0 and self.search_history[self.history_index] != search_query):
             self.search_history.append(search_query)
             self.history_index = len(self.search_history) - 1
@@ -503,6 +677,73 @@ class DataSearchApp:
                 if 'progress_window' in locals():
                     progress_window.destroy()
 
+        elif search_mode == 'Stock Screener':
+            params = {
+                'apikey': self.FMP_API_KEY,
+                'isActivelyTrading': 'true'
+            }
+
+            # Funkcja pomocnicza, aby uniknąć problemów z pustymi/niewłaściwymi parametrami
+            def set_param_if_valid(key, value, numeric=False):
+                val = value.strip()
+                if val and val.lower() != "none":
+                    if numeric:
+                        # Sprawdź czy wartość jest liczbą
+                        if val.isdigit():
+                            params[key] = val
+                    else:
+                        params[key] = val
+
+            # Ustawiamy parametry tylko jeśli nie "None" i nie puste
+            set_param_if_valid('exchange', self.exchange_var.get(), numeric=False)
+            set_param_if_valid('sector', self.sector_var.get(), numeric=False)
+            set_param_if_valid('industry', self.industry_var.get(), numeric=False)
+            set_param_if_valid('country', self.country_var.get(), numeric=False)
+
+            set_param_if_valid('marketCapMoreThan', self.market_cap_min_var.get(), numeric=True)
+            set_param_if_valid('marketCapLowerThan', self.market_cap_max_var.get(), numeric=True)
+            set_param_if_valid('peMoreThan', self.pe_min_var.get(), numeric=True)
+            set_param_if_valid('peLowerThan', self.pe_max_var.get(), numeric=True)
+            set_param_if_valid('priceMoreThan', self.price_min_var.get(), numeric=True)
+            set_param_if_valid('priceLowerThan', self.price_max_var.get(), numeric=True)
+            set_param_if_valid('volumeMoreThan', self.volume_more_var.get(), numeric=True)
+            set_param_if_valid('dividendMoreThan', self.dividend_min_var.get(), numeric=True)
+            set_param_if_valid('dividendLowerThan', self.dividend_max_var.get(), numeric=True)
+            set_param_if_valid('betaMoreThan', self.beta_min_var.get(), numeric=True)
+            set_param_if_valid('betaLowerThan', self.beta_max_var.get(), numeric=True)
+
+            # isEtf może być "true" lub "false"
+            is_etf_val = self.is_etf_var.get().strip().lower()
+            if is_etf_val in ["true", "false"]:
+                params['isEtf'] = is_etf_val
+
+            url = f"{self.FMP_BASE_URL}/stock-screener"
+            try:
+                response = requests.get(url, params=params)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data:
+                        self.search_results = pd.DataFrame(data)
+
+                        # Upewniamy się, że mamy odpowiednie kolumny
+                        for c in ['symbol', 'companyName', 'marketCap', 'sector', 'industry', 'price']:
+                            if c not in self.search_results.columns:
+                                self.search_results[c] = ''
+
+                        self.tree.delete(*self.tree.get_children())
+                        self.update_treeview_columns()
+
+                        for idx, row in self.search_results.iterrows():
+                            self.tree.insert('', 'end', values=(row['symbol'], row['companyName'], row['marketCap'], row['sector'], row['industry'], row['price']))
+                        self.tree.bind("<Double-1>", self.add_to_favorites)
+                    else:
+                        messagebox.showinfo("Info", "No results found.")
+                        self.tree.delete(*self.tree.get_children())
+                else:
+                    messagebox.showerror("Error", f"Failed to search: {response.status_code}")
+            except Exception as e:
+                messagebox.showerror("Error", f"An error occurred during the search: {e}")
+                
     def prev_search(self):
         if self.history_index > 0:
             self.history_index -= 1
@@ -602,7 +843,6 @@ class DataSearchApp:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to sort data: {e}")
 
-
     def update_treeview_columns(self, *args):
         search_mode = self.search_mode_var.get()
         if search_mode == 'FRED':
@@ -611,6 +851,11 @@ class DataSearchApp:
         elif search_mode == 'Stocks':
             columns = ('symbol', 'name', 'stockExchange')
             headings = {'symbol': 'Symbol', 'name': 'Name', 'stockExchange': 'Exchange'}
+        elif search_mode == 'Stock Screener':
+            # Upewniamy się, że kolumny są ustawione podobnie jak w Stocks,
+            # dzięki czemu suwak będzie działać poprawnie
+            columns = ('symbol', 'companyName', 'marketCap', 'sector', 'industry', 'price')
+            headings = {'symbol': 'Symbol', 'companyName': 'Company Name', 'marketCap': 'Market Cap', 'sector': 'Sector', 'industry': 'Industry', 'price': 'Price'}
         elif search_mode == 'Eurostat':
             columns = ('id', 'title', 'last update', 'data start', 'data end')
             headings = {'id': 'ID', 'title': 'Title', 'last update': 'Last Update', 'data start': 'Data Start', 'data end': 'Data End'}
@@ -621,13 +866,11 @@ class DataSearchApp:
             columns = ()
             headings = {}
 
-        # Aktualizacja kolumn TreeView
         self.tree['columns'] = columns
         for col in columns:
             self.tree.heading(col, text=headings[col], command=lambda _col=col: self.sort_column(_col))
             self.tree.column(col, anchor='w', width=150)
 
-        # Wyczyszczenie istniejących danych
         self.tree.delete(*self.tree.get_children())
 
     def add_to_favorites(self, event):
@@ -644,6 +887,10 @@ class DataSearchApp:
             elif search_mode == 'Stocks':
                 # Extract columns: 'symbol', 'name', 'stockExchange', 'source'
                 selected_columns = [item_values[0], item_values[1], item_values[2], 'Stocks']
+            elif search_mode == 'Stock Screener':
+            # Traktujemy jak Stocks
+            # symbol, companyName, marketCap, sector, industry, price -> nam wystarczy symbol i name jak w Stocks
+                selected_columns = [item_values[0], item_values[1], "", "Stocks"]
             elif search_mode == 'Eurostat':
                 selected_columns = [item_values[0], item_values[1], item_values[2], 'Eurostat']
             elif search_mode == 'World Bank':
@@ -671,11 +918,15 @@ class DataSearchApp:
             self.favorites_tree.insert('', 'end', values=(row['id'], row['title'], row['frequency'], row['source']))
 
     def on_search_mode_change(self, *args):
-        # Aktualizacja kolumn TreeView na podstawie trybu wyszukiwania
         self.update_treeview_columns()
-
-        # Opcjonalnie możesz także wyczyścić dane w tabeli po zmianie trybu
         self.tree.delete(*self.tree.get_children())
+
+        search_mode = self.search_mode_var.get()
+        if search_mode == "Stock Screener" and hasattr(self, 'screener_frame'):
+            self.screener_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+        else:
+            if hasattr(self, 'screener_frame'):
+                self.screener_frame.pack_forget()
 
     def remove_favorite(self, event=None):
         selected_items = self.favorites_tree.selection()
@@ -866,7 +1117,7 @@ class DataSearchApp:
 
         context_menu.add_command(label="Show Plot", command=self.show_plot)
 
-        if search_mode == 'Stocks':
+        if search_mode == 'Stocks' or search_mode == 'Stock Screener':
             context_menu.add_command(label="Fundaments", command=self.show_fundamentals)
             context_menu.add_command(label="Download Fundamentals", command=self.download_fundamentals)
             context_menu.add_command(label="Quarterly Fundamentals", command=self.show_quarterly_fundamentals)
@@ -1133,7 +1384,7 @@ class DataSearchApp:
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to display plot: {e}")
 
-        elif search_mode == 'Stocks':
+        elif search_mode == 'Stocks' or search_mode == 'Stock Screener':
             symbol = item_values[0]
             try:
                 data = yf.download(symbol, period='max')
