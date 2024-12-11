@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="data-search-engine",
-    version="1.1.0", 
+    version="1.1.1", 
     description="A Python-based data search and visualization engine.",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
