@@ -1,6 +1,6 @@
 # Data Search App
 
-An application for searching, analyzing, and visualizing financial and economic data from multiple sources such as FRED, Eurostat, World Bank, and Yahoo Finance. The app enables creating reports, generating dynamic charts, and exporting results to Excel and PDF files.
+An application for searching, analyzing, screening and visualizing financial and economic data from multiple sources such as FRED, Eurostat, World Bank, and Yahoo Finance. The app enables creating reports, generating dynamic charts, and exporting results to Excel and PDF files.
 
 ## Features
 
@@ -20,6 +20,9 @@ An application for searching, analyzing, and visualizing financial and economic 
 
 - **Favorites Management:**
   - Save frequently used indicators to a "Favorites" section for quick access.
+
+- **Stock Screening:**
+  - Search all stocks by specific requirements like beta, dividends, PE ratio.
 
 ## System Requirements
 
@@ -41,6 +44,12 @@ pip install -r requirements.txt
 Start the application:
 ```bash
 python main.py
+```
+Alternatively you can just open your notebook and write:
+```bash
+pip install data-search-engine
+from data_search_engine import run_app
+run_app()
 ```
 You will need API keys for the following services:
 
